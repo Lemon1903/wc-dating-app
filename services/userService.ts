@@ -1,10 +1,10 @@
-import { createId } from '@paralleldrive/cuid2';
+import { createId } from "@paralleldrive/cuid2";
 import bcrypt from "bcryptjs";
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
-import db from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { CreateUserSchema } from '@/lib/validators/user';
+import db from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { CreateUserSchema } from "@/lib/validators/user";
 
 export async function createUser(data: CreateUserSchema) {
   const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -12,11 +12,9 @@ export async function createUser(data: CreateUserSchema) {
     .insert(users)
     .values({
       id: createId(),
-      email: data.email,
-      name: data.name,
+      ...data,
       password: hashedPassword,
       birthday: new Date(data.birthday),
-      bio: data.bio,
     })
     .returning({
       id: users.id,
