@@ -1,6 +1,6 @@
-import { User } from "@prisma/client";
 import axios from "axios";
 
+import { User } from "@/lib/db/schema";
 import { UserRegistrationSchema } from "@/lib/schemas/register-schema";
 import { ResponseResult } from "@/types";
 
@@ -21,10 +21,7 @@ export async function registerUser(userData: UserRegistrationSchema) {
     birthday: birthDate,
   };
 
-  const response = await axiosClient.post<ResponseResult<Omit<User, "password" | "createdAt">>>(
-    `/users`,
-    apiData,
-  );
+  const response = await axiosClient.post<ResponseResult<User>>(`/users`, apiData);
 
   return response.data;
 }

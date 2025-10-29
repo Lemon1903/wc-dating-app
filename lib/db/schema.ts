@@ -1,3 +1,4 @@
+import { InferSelectModel } from "drizzle-orm";
 import { pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -9,3 +10,5 @@ export const users = pgTable("users", {
   bio: text("bio").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type User = Omit<InferSelectModel<typeof users>, "password" | "createdAt">;
