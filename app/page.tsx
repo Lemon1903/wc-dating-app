@@ -1,116 +1,66 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Heart } from "lucide-react";
-import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
-import z from "zod/v4";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
-const formSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1, { error: "This field is required" }),
-});
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-export default function LoginPage() {
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
-  function handleSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Form submitted:", values);
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <Spinner className="border-primary stroke-primary mx-auto mb-4 size-8" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center py-8 sm:px-4">
-      <Card className="w-full max-w-lg shadow-lg max-sm:border-none max-sm:shadow-none">
-        <div className="p-4 sm:p-8">
-          {/* Header */}
-          <div className="mb-8 flex items-center justify-center gap-2">
-            <Heart className="fill-primary text-primary h-8 w-8" />
-            <h1 className="text-foreground text-3xl font-bold">Connect</h1>
+    <div className="bg-background min-h-screen p-4">
+      <div className="mx-auto max-w-4xl">
+        <Card className="p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Welcome to Connect!</h1>
+            <Button onClick={() => signOut({ callbackUrl: "/" })} variant="outline">
+              Sign Out
+            </Button>
           </div>
 
-          <p className="text-muted-foreground mb-8 text-center">
-            Welcome back! Log in to your account
-          </p>
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold">Your Profile</h2>
+              <p className="text-muted-foreground">Email: {session.user?.email}</p>
+              <p className="text-muted-foreground">Name: {session.user?.name || "Not provided"}</p>
+            </div>
 
-          <form
-            id="form-rhf-login"
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-6"
-          >
-            <FieldGroup className="gap-4">
-              {/* Email */}
-              <Controller
-                name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-rhf-login-email">Email</FieldLabel>
-                    <Input
-                      {...field}
-                      id="form-rhf-login-email"
-                      type="email"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="you@example.com"
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-
-              {/* Password */}
-              <Controller
-                name="password"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-rhf-login-password">Password</FieldLabel>
-                    <Input
-                      {...field}
-                      id="form-rhf-login-password"
-                      type="password"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="••••••••"
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              // disabled={isLoading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full rounded-lg py-2 font-semibold transition-colors"
-            >
-              {/* {isLoading ? "Logging in..." : "Log In"} */}
-              Log In
-            </Button>
-          </form>
-
-          {/* Switch to Signup */}
-          <p className="text-muted-foreground mt-2 text-center">
-            Don't have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-primary font-semibold transition-colors hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
-        </div>
-      </Card>
+            <div className="rounded-lg border p-4">
+              <h3 className="mb-2 font-semibold">🚧 Under Construction</h3>
+              <p className="text-muted-foreground text-sm">
+                This is your dashboard. More features like profile editing, matching, and messaging
+                will be added soon!
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

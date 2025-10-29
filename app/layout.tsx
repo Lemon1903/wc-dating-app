@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
+import Providers from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,9 +37,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn(geistSans.variable, geistMono.variable, sourceSerif4.variable, "antialiased")}>
-        <main>{children}</main>
-        <Toaster position="top-right" />
+      <body
+        className={cn(geistSans.variable, geistMono.variable, sourceSerif4.variable, "antialiased")}
+      >
+        <Providers>
+          <main>{children}</main>
+          <Toaster position="top-right" />
+        </Providers>
       </body>
     </html>
   );

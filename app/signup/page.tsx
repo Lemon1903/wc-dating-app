@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod/v4";
 
 import ProfilePhotosInput from "@/components/ProfilePhotosInput";
 import { Button } from "@/components/ui/button";
@@ -15,39 +14,12 @@ import { Card } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { validateBirthday } from "@/lib/date-utils";
-
-const formSchema = z
-  .object({
-    email: z.email(),
-    name: z.string().min(1, { message: "Name is required" }),
-    birthday: z
-      .object({
-        month: z.string(),
-        day: z.string(),
-        year: z.string(),
-      })
-      .refine(validateBirthday, {
-        message: "Please provide a valid birthday and you must be at least 18 years old",
-      }),
-    bio: z.string().max(10, { message: "Bio must be at most 10 characters" }),
-    profileImages: z
-      .array(z.instanceof(File).optional())
-      .max(3)
-      .refine((images) => images.filter((img) => img !== undefined).length >= 2, {
-        message: "Please upload at least 2 profile pictures",
-      }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-    confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+import { registerUser } from "@/lib/api";
+import { UserRegistrationSchema, userRegistrationSchema } from "@/lib/schemas/register-schema";
 
 export default function SignupPage() {
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(userRegistrationSchema),
     defaultValues: {
       email: "",
       name: "",
@@ -66,46 +38,24 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: UserRegistrationSchema) => {
     setIsLoading(true);
     // debugToast(values);
 
     try {
-      // Prepare the data for the API (exclude profileImages for now, as they require file upload)
-      const { profileImages, confirmPassword, ...userData } = values;
-
-      // Convert birthday object to ISO date string
-      const month = parseInt(userData.birthday.month, 10);
-      const day = parseInt(userData.birthday.day, 10);
-      const year = parseInt(userData.birthday.year, 10);
-
-      const apiData = {
-        ...userData,
-        birthday: new Date(year, month - 1, day),
-      };
-
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(apiData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
-      }
-
-      // Success - redirect to login page
-      toast.success("Account created successfully! Please log in.");
+      await registerUser(values);
+      toast.success("Account created successfully!");
       router.push("/");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create account");
-    } finally {
-      setIsLoading(false);
+    } catch (e: any) {
+      const error = e.response.data.error;
+      if (Array.isArray(error)) {
+        toast.error(error[0].message);
+      } else {
+        toast.error(error);
+      }
     }
+
+    setIsLoading(false);
   };
 
   return (
