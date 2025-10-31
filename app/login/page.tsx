@@ -1,57 +1,47 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import z from "zod/v4";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-
-const formSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1, { error: "This field is required" }),
-});
+import { signInUser } from "@/lib/api";
+import { UserLoginSchema, userLoginSchema } from "@/lib/form-schemas/login-schema";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(userLoginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  async function handleSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-
-    try {
-      const result = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      });
-
+  const signInMutation = useMutation({
+    mutationFn: (values: UserLoginSchema) => signInUser(values),
+    onSuccess: (result) => {
       if (result?.error) {
         toast.error("Invalid email or password");
       } else {
-        router.push("/"); // Redirect to dashboard or home
+        router.push("/");
       }
-    } catch (err) {
+    },
+    onError: () => {
       toast.error("An error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    },
+  });
+
+  async function handleSubmit(values: UserLoginSchema) {
+    signInMutation.mutate(values);
   }
 
   return (
@@ -116,10 +106,10 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={signInMutation.isPending}
               className="bg-primary hover:bg-primary/90 text-primary-foreground w-full rounded-lg py-2 font-semibold transition-colors"
             >
-              {isLoading ? "Logging in..." : "Log In"}
+              {signInMutation.isPending ? "Logging in..." : "Log In"}
             </Button>
           </form>
 

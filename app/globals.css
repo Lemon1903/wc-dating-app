@@ -4,9 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  --font-serif: 'Source Serif 4', 'Source Serif 4 Fallback';
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-serif: "Source Serif 4", "Source Serif 4 Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -85,6 +85,22 @@
   --shadow-spread: 0px;
   --shadow-opacity: 0.05;
   --shadow-color: #000000;
+
+  /* -- Swiper css properties -- */
+  /* Navigation styles */
+  --swiper-navigation-size: 32px !important;
+  --swiper-navigation-top-offset: 50%;
+  --swiper-navigation-sides-offset: 10px;
+  --swiper-navigation-color: var(--foreground) !important;
+
+  /* Pagination styles */
+  --swiper-pagination-bullet-horizontal-gap: 2px;
+  --swiper-pagination-bullet-vertical-gap: 0px;
+  --swiper-pagination-top: 0;
+  --swiper-pagination-bottom: auto;
+  --swiper-pagination-bullet-height: 4px;
+  --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.5);
+  --swiper-pagination-color: white;
 }
 
 .dark {
@@ -128,4 +144,35 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Swiper custom styles */
+.swiper > .swiper-button-next,
+.swiper > .swiper-button-prev {
+  background-color: var(--background);
+  border-radius: 50%;
+  padding: 8px;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
+
+.group:hover .swiper > .swiper-button-next,
+.group:hover .swiper > .swiper-button-prev {
+  opacity: 1 !important;
+}
+
+.group:hover .swiper > .swiper-button-disabled {
+  opacity: 0.3 !important;
+}
+
+.swiper > .swiper-pagination {
+  display: flex;
+  width: 100%;
+  padding: 8px;
+}
+
+.swiper > .swiper-pagination > .swiper-pagination-bullet {
+  flex: 1;
+  border: 1px solid var(--color-muted);
+  border-radius: 4px;
 }

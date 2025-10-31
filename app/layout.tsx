@@ -1,10 +1,11 @@
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 
+import Providers from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-import Providers from "@/components/providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default function RootLayout({
         <Providers>
           <main>{children}</main>
           <Toaster position="top-right" />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
         </Providers>
       </body>
     </html>

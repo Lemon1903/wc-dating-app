@@ -25,12 +25,11 @@ export function validateBirthday(birthday: Birthday): boolean {
     return false;
   }
 
-  const age = calculateAge(month, day, year);
+  const age = calculateAge(new Date(year, month - 1, day));
   return age >= 18;
 }
 
-export function calculateAge(month: number, day: number, year: number): number {
-  const birthDate = new Date(year, month - 1, day);
+export function calculateAge(birthDate: Date): number {
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();

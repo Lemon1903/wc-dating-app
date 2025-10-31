@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -15,7 +14,8 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { registerUser } from "@/lib/api";
-import { UserRegistrationSchema, userRegistrationSchema } from "@/lib/schemas/register-schema";
+import { UserRegistrationSchema, userRegistrationSchema } from "@/lib/form-schemas/register-schema";
+import { useMutation } from "@tanstack/react-query";
 
 export default function SignupPage() {
   const form = useForm({
@@ -28,34 +28,35 @@ export default function SignupPage() {
         day: "",
         year: "",
       },
+      gender: undefined,
       bio: "",
-      profileImages: [undefined, undefined, undefined],
+      profilePhotos: [undefined, undefined, undefined],
       password: "",
       confirmPassword: "",
     },
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (values: UserRegistrationSchema) => {
-    setIsLoading(true);
-    // debugToast(values);
-
-    try {
-      await registerUser(values);
+  const signInMutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
       toast.success("Account created successfully!");
-      router.push("/");
-    } catch (e: any) {
+      router.push("/login");
+    },
+    onError: (e: any) => {
       const error = e.response.data.error;
       if (Array.isArray(error)) {
         toast.error(error[0].message);
       } else {
         toast.error(error);
       }
-    }
+    },
+  });
 
-    setIsLoading(false);
+  const handleSubmit = async (values: UserRegistrationSchema) => {
+    // debugToast(values);
+    signInMutation.mutate(values);
   };
 
   return (
@@ -145,6 +146,36 @@ export default function SignupPage() {
                 )}
               />
 
+              {/* Gender */}
+              <Controller
+                name="gender"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Gender</FieldLabel>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={field.value === "male" ? "default" : "outline"}
+                        onClick={() => field.onChange("male")}
+                        className="flex-1"
+                      >
+                        Male
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === "female" ? "default" : "outline"}
+                        onClick={() => field.onChange("female")}
+                        className="flex-1"
+                      >
+                        Female
+                      </Button>
+                    </div>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
               {/* Bio */}
               <Controller
                 name="bio"
@@ -164,7 +195,7 @@ export default function SignupPage() {
 
               {/* Profile Photos */}
               <Controller
-                name="profileImages"
+                name="profilePhotos"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
@@ -217,10 +248,10 @@ export default function SignupPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={signInMutation.isPending}
               className="bg-primary hover:bg-primary/90 text-primary-foreground w-full rounded-lg py-2 font-semibold transition-colors"
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {signInMutation.isPending ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 
