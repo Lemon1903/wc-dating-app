@@ -22,7 +22,7 @@ interface ProfilePreviewCardProps {
 
 export default function ProfilePreviewCard({
   currentUser,
-  showBio,
+  showBio = true,
   className,
 }: ProfilePreviewCardProps) {
   const age = calculateAge(new Date(currentUser.birthday));
